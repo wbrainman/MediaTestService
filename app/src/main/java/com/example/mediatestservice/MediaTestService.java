@@ -1,13 +1,17 @@
 package com.example.mediatestservice;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
@@ -24,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.example.mediatestservice.common.Common;
+
 public class MediaTestService extends Service {
 
     private static final String TAG = "MediaTest";
@@ -37,6 +43,9 @@ public class MediaTestService extends Service {
 
     private File recordPath;
     private File recordFile;
+
+    private HandlerThread mHandlerThread = new HandlerThread("MediaTest");
+    private Handler mHandler;
 
     private final IMediaTestService.Stub stub = new IMediaTestService.Stub() {
         @Override
@@ -92,6 +101,7 @@ public class MediaTestService extends Service {
                 e.printStackTrace();
             }
 
+            mHandler.sendEmptyMessageDelayed(Common.MSG_STOP_RECORD, Common.TIME_10S);
         }
 
         @Override
@@ -115,8 +125,34 @@ public class MediaTestService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "onCreate: ");
-        // TODO: permissions?
+        Log.d(TAG, "service onCreate: ");
+
+        mHandlerThread.start();
+        mHandler = new Handler(mHandlerThread.getLooper()) {
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                switch (msg.what) {
+                    case Common.MSG_START_RECORD:
+                        try {
+                            stub.startRecord();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    case Common.MSG_STOP_RECORD:
+                        try {
+                            stub.stopRecord();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
+
+        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
     }
 
     @Nullable
@@ -126,43 +162,9 @@ public class MediaTestService extends Service {
         return stub;
     }
 
-//    private void checkPermission() {
-//        mPermissionList.clear();
-//        for(String permission : permissions) {
-//            Log.d(TAG, "initPermission: checking permission : " + permission);
-//            if(ContextCompat.checkSelfPermission(
-//                    MediaTestService.this, permission) != PackageManager.PERMISSION_GRANTED) {
-//                Log.d(TAG, "initPermission: permission : " + permission + "added");
-//                mPermissionList.add(permission);
-//            }
-//        }
-//        if(mPermissionList.size() > 0) {
-//            ActivityCompat.requestPermissions(MediaTestService.this, permissions, 1);
-//        }
-//        else {
-//        }
-//    }
-//    @Override
-//    public void onRequestPermissionsResult(
-//            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//
-//        boolean denied = false;
-//        switch (requestCode) {
-//            case 1:
-//                for(int i = 0; i < grantResults.length; i ++) {
-//                    if(grantResults[i] == -1) {
-//                        denied = true;
-//                    }
-//                }
-//                if(denied) {
-//                    // TODO
-//                }
-//                else {
-//                }
-//                break;
-//            default:
-//                break;
-//        }
-//    }
-
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "service onDestroy: ");
+    }
 }

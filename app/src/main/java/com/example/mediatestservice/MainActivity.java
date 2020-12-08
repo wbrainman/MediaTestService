@@ -6,38 +6,72 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+//public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
-    private static final String TAG = "MediaTest";
+
+private static final String TAG = "MediaTest";
 
     private String[] permissions = new String[]
             { Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     Manifest.permission.RECORD_AUDIO };
     private List<String> mPermissionList = new ArrayList<>();
 
+    private IMediaTestService iMediaTestService;
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG, "onServiceConnected: ");
+            iMediaTestService = IMediaTestService.Stub.asInterface(service);
+
+            try {
+                iMediaTestService.startRecord();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "onServiceDisconnected: ");
+
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+//        setContentView(R.layout.activity_main);
 
         checkPermission();
         Intent intent = new Intent(this, MediaTestService.class);
-        startService(intent);
+//        startService(intent);
+        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onResume() {
-        super.onResume();
         finish();
+        super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     private void checkPermission() {
