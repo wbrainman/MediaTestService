@@ -19,7 +19,6 @@ public class AlarmReceiver extends BroadcastReceiver {
     private AlarmManager mAlarmManager;
     private PendingIntent mPendingIntent;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "AlarmReceiver onReceive: ");

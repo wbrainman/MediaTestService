@@ -25,9 +25,11 @@ public class MainActivity extends Activity {
 
 private static final String TAG = "MediaTest";
 
-    private String[] permissions = new String[]
-            { Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.RECORD_AUDIO };
+    private String[] permissions = new String[] {
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.RECEIVE_SMS,
+            Manifest.permission.RECORD_AUDIO
+    };
     private List<String> mPermissionList = new ArrayList<>();
 
     private IMediaTestService iMediaTestService;
@@ -55,7 +57,7 @@ private static final String TAG = "MediaTest";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main);
 
         checkPermission();
         Intent intent = new Intent(this, MediaTestService.class);
@@ -65,7 +67,7 @@ private static final String TAG = "MediaTest";
 
     @Override
     protected void onResume() {
-        finish();
+//        finish();
         super.onResume();
     }
 

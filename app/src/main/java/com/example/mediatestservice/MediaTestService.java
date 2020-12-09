@@ -31,6 +31,7 @@ import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -131,7 +132,6 @@ public class MediaTestService extends Service {
         }
     };
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onCreate() {
         super.onCreate();
@@ -162,19 +162,17 @@ public class MediaTestService extends Service {
             }
         };
 
-        Intent intent = new Intent(ALARM_ACTION);
+        //alarm
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.setAction(ALARM_ACTION);
         PendingIntent pi = PendingIntent.getBroadcast(this, 0, intent, 0);
-
         AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
-//        am.setExactAndAllowWhileIdle(
-//                AlarmManager.RTC_WAKEUP,
-//                SystemClock.elapsedRealtime() + Common.TIME_10S,
-//                pi
-//        );
-        am.setRepeating(AlarmManager.RTC_WAKEUP,
-                System.currentTimeMillis() + TIME_10S,
-                TIME_10S,
-                pi);
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 19);
+        calendar.set(Calendar.MINUTE, 27);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
 
     }
 
