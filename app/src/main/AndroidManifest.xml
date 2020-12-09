@@ -32,9 +32,11 @@
             </intent-filter>
         </service>
 
-        <receiver
-            android:name=".AlarmReceiver"
-            android:process=":remote"/>
+        <receiver android:name=".AlarmReceiver">
+            <intent-filter>
+                <action android:name="START_MEDIA_TEST"></action>
+            </intent-filter>
+        </receiver>
 
     </application>
 

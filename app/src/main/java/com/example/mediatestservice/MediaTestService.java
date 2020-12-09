@@ -2,22 +2,28 @@ package com.example.mediatestservice;
 
 import android.Manifest;
 import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -29,6 +35,9 @@ import java.util.Date;
 import java.util.List;
 
 import com.example.mediatestservice.common.Common;
+
+import static com.example.mediatestservice.common.Common.ALARM_ACTION;
+import static com.example.mediatestservice.common.Common.TIME_10S;
 
 public class MediaTestService extends Service {
 
@@ -122,6 +131,7 @@ public class MediaTestService extends Service {
         }
     };
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onCreate() {
         super.onCreate();
@@ -152,7 +162,20 @@ public class MediaTestService extends Service {
             }
         };
 
-        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Intent intent = new Intent(ALARM_ACTION);
+        PendingIntent pi = PendingIntent.getBroadcast(this, 0, intent, 0);
+
+        AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+//        am.setExactAndAllowWhileIdle(
+//                AlarmManager.RTC_WAKEUP,
+//                SystemClock.elapsedRealtime() + Common.TIME_10S,
+//                pi
+//        );
+        am.setRepeating(AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + TIME_10S,
+                TIME_10S,
+                pi);
+
     }
 
     @Nullable
@@ -167,4 +190,5 @@ public class MediaTestService extends Service {
         super.onDestroy();
         Log.d(TAG, "service onDestroy: ");
     }
+
 }
