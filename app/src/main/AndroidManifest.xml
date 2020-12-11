@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.mediatestservice">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -37,11 +38,9 @@
             </intent-filter>
         </service>
 
-        <receiver android:name=".AlarmReceiver">
-            <intent-filter>
-                <action android:name="START_MEDIA_TEST"></action>
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-            </intent-filter>
+        <receiver
+            android:name=".MediaTestService$MyReceiver"
+            tools:ignore="Instantiatable">
         </receiver>
 
     </application>

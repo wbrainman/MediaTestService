@@ -41,7 +41,7 @@ private static final String TAG = "MediaTest";
             iMediaTestService = IMediaTestService.Stub.asInterface(service);
 
             try {
-                iMediaTestService.startRecord();
+//                iMediaTestService.startRecord();
             } catch (Exception e) {
                 e.printStackTrace();
             }

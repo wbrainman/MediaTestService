@@ -28,6 +28,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import java.io.File;
+import java.security.AlgorithmConstraints;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import java.util.List;
 import com.example.mediatestservice.common.Common;
 
 import static com.example.mediatestservice.common.Common.ALARM_ACTION;
+import static com.example.mediatestservice.common.Common.TIME_10MIN;
 import static com.example.mediatestservice.common.Common.TIME_10S;
 
 public class MediaTestService extends Service {
@@ -56,6 +58,8 @@ public class MediaTestService extends Service {
 
     private HandlerThread mHandlerThread = new HandlerThread("MediaTest");
     private Handler mHandler;
+
+    private MyReceiver myReceiver;
 
     private final IMediaTestService.Stub stub = new IMediaTestService.Stub() {
         @Override
@@ -144,7 +148,7 @@ public class MediaTestService extends Service {
                 switch (msg.what) {
                     case Common.MSG_START_RECORD:
                         try {
-                            stub.startRecord();
+//                            stub.startRecord();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -163,16 +167,26 @@ public class MediaTestService extends Service {
         };
 
         //alarm
-        Intent intent = new Intent(this, AlarmReceiver.class);
-        intent.setAction(ALARM_ACTION);
+        //Intent intent = new Intent(this, AlarmReceiver.class);
+//        intent.setAction(ALARM_ACTION);
+        Intent intent = new Intent(ALARM_ACTION);
         PendingIntent pi = PendingIntent.getBroadcast(this, 0, intent, 0);
         AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 19);
-        calendar.set(Calendar.MINUTE, 27);
+        calendar.set(Calendar.HOUR_OF_DAY, 20);
+        calendar.set(Calendar.MINUTE, 30);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+//        am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+//        am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 5000, pi);
+        am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), TIME_10MIN, pi);
+
+        //my receiver
+        myReceiver = new MyReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ALARM_ACTION);
+        intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
+        registerReceiver(myReceiver, intentFilter);
 
     }
 
@@ -187,6 +201,21 @@ public class MediaTestService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "service onDestroy: ");
+    }
+
+    public class MyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "onReceive: my " + intent.getAction());
+            if (ALARM_ACTION == intent.getAction()) {
+                try {
+                    stub.startRecord();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }
     }
 
 }
