@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.example.mediatestservice.common.Common;
+import com.example.mediatestservice.util.MyLog;
 
 import static com.example.mediatestservice.common.Common.ALARM_ACTION;
 import static com.example.mediatestservice.common.Common.TIME_10MIN;
@@ -115,7 +116,8 @@ public class MediaTestService extends Service {
                 e.printStackTrace();
             }
 
-            mHandler.sendEmptyMessageDelayed(Common.MSG_STOP_RECORD, Common.TIME_10S);
+//            mHandler.sendEmptyMessageDelayed(Common.MSG_STOP_RECORD, Common.TIME_10S);
+            mHandler.sendEmptyMessageDelayed(Common.MSG_STOP_RECORD, Common.TIME_3H);
         }
 
         @Override
@@ -140,6 +142,7 @@ public class MediaTestService extends Service {
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "service onCreate: ");
+        MyLog.d(TAG, "service onCreate: ");
 
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper()) {
@@ -177,9 +180,9 @@ public class MediaTestService extends Service {
         calendar.set(Calendar.MINUTE, 30);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-//        am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+        am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
 //        am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 5000, pi);
-        am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), TIME_10MIN, pi);
+//        am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), TIME_10MIN, pi);
 
         //my receiver
         myReceiver = new MyReceiver();
