@@ -16,6 +16,8 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.mediatestservice.util.MyLog;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +39,7 @@ private static final String TAG = "MediaTest";
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG, "onServiceConnected: ");
+            MyLog.d(TAG, "onServiceConnected: ");
             iMediaTestService = IMediaTestService.Stub.asInterface(service);
 
             try {
@@ -49,7 +51,7 @@ private static final String TAG = "MediaTest";
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            Log.d(TAG, "onServiceDisconnected: ");
+            MyLog.d(TAG, "onServiceDisconnected: ");
 
         }
     };
@@ -58,6 +60,8 @@ private static final String TAG = "MediaTest";
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        MyLog.setPath(getExternalFilesDir(null));
 
         checkPermission();
         Intent intent = new Intent(this, MediaTestService.class);
@@ -77,13 +81,13 @@ private static final String TAG = "MediaTest";
     }
 
     private void checkPermission() {
-        Log.d(TAG, "checkPermission: ");
+        MyLog.d(TAG, "checkPermission: ");
         mPermissionList.clear();
         for(String permission : permissions) {
-            Log.d(TAG, "initPermission: checking permission : " + permission);
+            MyLog.d(TAG, "initPermission: checking permission : " + permission);
             if(ContextCompat.checkSelfPermission(
                     MainActivity.this, permission) != PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "initPermission: permission : " + permission + "added");
+                MyLog.d(TAG, "initPermission: permission : " + permission + "added");
                 mPermissionList.add(permission);
             }
         }
@@ -97,7 +101,7 @@ private static final String TAG = "MediaTest";
     public void onRequestPermissionsResult(
             int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
-        Log.d(TAG, "onRequestPermissionsResult: ");
+        MyLog.d(TAG, "onRequestPermissionsResult: ");
 
         boolean denied = false;
         switch (requestCode) {

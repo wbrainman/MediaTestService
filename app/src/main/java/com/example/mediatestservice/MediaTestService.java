@@ -65,30 +65,30 @@ public class MediaTestService extends Service {
     private final IMediaTestService.Stub stub = new IMediaTestService.Stub() {
         @Override
         public void startRecord() throws RemoteException {
-            Log.d(TAG, "startRecord: ");
+            MyLog.d(TAG, "startRecord: ");
             try {
                 recordPath = getExternalFilesDir(null);
                 File path = new File(recordPath.getPath() + File.separator + "audioRecords");
                 recordPath = path;
                 if (!path.exists()) {
                     if (!path.mkdirs()) {
-                        Log.d(TAG, "startRecord: fail to create dir: " + path.getPath());
+                        MyLog.d(TAG, "startRecord: fail to create dir: " + path.getPath());
                         return;
                     }
-                    Log.d(TAG, "startRecord: create dir: " + path.getPath());
+                    MyLog.d(TAG, "startRecord: create dir: " + path.getPath());
                 } else {
-                    Log.d(TAG, "startRecord: dir already exist: " + path.getPath());
+                    MyLog.d(TAG, "startRecord: dir already exist: " + path.getPath());
                 }
 
                 try {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     Date date = new Date();
-                    Log.d(TAG, "startRecord: time = " + simpleDateFormat.format(date));
+                    MyLog.d(TAG, "startRecord: time = " + simpleDateFormat.format(date));
                     recordFile = new File(recordPath, simpleDateFormat.format(date) + ".amr");
 
-                    Log.d(TAG, "startRecord: " + recordFile.getAbsolutePath());
+                    MyLog.d(TAG, "startRecord: " + recordFile.getAbsolutePath());
                 } catch (Exception e) {
-                    Log.d(TAG, "startRecord: fail to create file");
+                    MyLog.d(TAG, "startRecord: fail to create file");
                 }
 
                 mMediaRecorder = new MediaRecorder();
@@ -103,14 +103,14 @@ public class MediaTestService extends Service {
                         mMediaRecorder.release();
                         mMediaRecorder = null;
                         isRecording = false;
-                        Log.d(TAG, "startRecord: error what = " + what + " extra = " + extra);
+                        MyLog.d(TAG, "startRecord: error what = " + what + " extra = " + extra);
                     }
                 });
 
                 mMediaRecorder.prepare();
                 mMediaRecorder.start();
                 isRecording = true;
-                Log.d(TAG, "startRecord: end");
+                MyLog.d(TAG, "startRecord: end");
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -125,7 +125,7 @@ public class MediaTestService extends Service {
             if (!isRecording) {
                 return;
             }
-            Log.d(TAG, "stopRecord: ");
+            MyLog.d(TAG, "stopRecord: ");
             try {
                 mMediaRecorder.stop();
                 mMediaRecorder.release();
@@ -134,15 +134,17 @@ public class MediaTestService extends Service {
             }
             mMediaRecorder = null;
             isRecording = false;
-            Log.d(TAG, "stopRecord: end");
+            MyLog.d(TAG, "stopRecord: end");
         }
     };
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "service onCreate: ");
         MyLog.d(TAG, "service onCreate: ");
+        MyLog.d(TAG, "service onCreate: ");
+
+        MyLog.setPath(getExternalFilesDir(null));
 
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper()) {
@@ -196,20 +198,20 @@ public class MediaTestService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(TAG, "onBind: ");
+        MyLog.d(TAG, "onBind: ");
         return stub;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(TAG, "service onDestroy: ");
+        MyLog.d(TAG, "service onDestroy: ");
     }
 
     public class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "onReceive: my " + intent.getAction());
+            MyLog.d(TAG, "onReceive: my " + intent.getAction());
             if (ALARM_ACTION == intent.getAction()) {
                 try {
                     stub.startRecord();

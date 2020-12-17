@@ -6,15 +6,21 @@ import android.util.Log;
 
 import com.example.mediatestservice.MyApplication;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import static android.content.Context.*;
 
 public class MyLog {
+    private static final String TAG = "MediaTest";
     private static final Boolean MYLOG_SWITCH = true;
     private static final Boolean MYLOG_WRITE_TO_FILE = true;
-    private static File mLogPath;
-    private static final String TAG = "MediaTest";
+    private static File mLogPath = null;
+    private static SimpleDateFormat myLogSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 日志的输出格式
+    private static SimpleDateFormat logfile = new SimpleDateFormat("yyyy-MM-dd");// 日志文件格式
 
     public static void w(String tag, Object msg) {
         log(tag, msg.toString(), 'w');
@@ -47,15 +53,61 @@ public class MyLog {
             } else {
                 Log.v(tag, msg);
             }
-            if (MYLOG_WRITE_TO_FILE)//日志写入文件开关
+            if (MYLOG_WRITE_TO_FILE) {
                 writeLogtoFile(String.valueOf(level), tag, msg);
+            }
         }
     }
 
     private static void writeLogtoFile(String logType, String tag, String text) {
+        if (mLogPath == null) {
+            Log.e(TAG, "log path is null");
+            return;
+        }
 
-//        mLogPath = MyApplication.getExternalFilesDir(null);
+        Date date = new Date();
+        String writeLog = myLogSdf.format(date) + "   " + logType + "   " + tag + "   " + text;
+
+        if (!mLogPath.exists()) {
+            if (!mLogPath.mkdirs()) {
+                Log.e(TAG, "writeLogtoFile: fail to create dir: " + mLogPath.getPath());
+                return;
+            }
+//            Log.d(TAG, "writeLogtoFile: create dir: " + mLogPath.getPath());
+        } else {
+//            Log.d(TAG, "writeLogtoFile: dir already exist: " + mLogPath.getPath());
+        }
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//        Log.d(TAG, "writeLogtoFile: time = " + simpleDateFormat.format(date));
+        File file = new File(mLogPath, simpleDateFormat.format(date) + ".log");
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+       try {
+           FileWriter fileWriter = new FileWriter(file, true);
+           BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+           bufferedWriter.write(writeLog);
+           bufferedWriter.newLine();
+           bufferedWriter.close();
+           fileWriter.close();
+       } catch (Exception e) {
+            e.printStackTrace();
+       }
 
     }
 
+    public static void setPath(File file) {
+        mLogPath = file;
+        File path = new File(mLogPath.getPath() + File.separator + "log");
+        mLogPath = path;
+        MyLog.d(TAG, "setPath: " + file);
+    }
+
 }
+
