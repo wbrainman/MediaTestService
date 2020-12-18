@@ -182,7 +182,14 @@ public class MediaTestService extends Service {
         calendar.set(Calendar.MINUTE, 30);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            am.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
+        } else {
+            am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+        }
+
 //        am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 5000, pi);
 //        am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), TIME_10MIN, pi);
 
@@ -192,6 +199,7 @@ public class MediaTestService extends Service {
         intentFilter.addAction(ALARM_ACTION);
         intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
         registerReceiver(myReceiver, intentFilter);
+
 
     }
 
@@ -213,6 +221,24 @@ public class MediaTestService extends Service {
         public void onReceive(Context context, Intent intent) {
             MyLog.d(TAG, "onReceive: my " + intent.getAction());
             if (ALARM_ACTION == intent.getAction()) {
+
+                PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
+                AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.HOUR_OF_DAY, 20);
+                calendar.set(Calendar.MINUTE, 30);
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    am.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
+                } else {
+                    am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+                }
+
                 try {
                     stub.startRecord();
                 } catch (Exception e) {
