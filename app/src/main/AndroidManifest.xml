@@ -12,6 +12,11 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!--  接收短信广播则一定有加入相应的权限 -->
     <uses-permission android:name="android.permission.RECEIVE_SMS"></uses-permission>
+    <!--    浮窗权限-->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"></uses-permission>
+    <!--    Camera-->
+    <uses-permission android:name="android.permission.CAMERA"></uses-permission>
+
 
     <application
         android:name=".MyApplication"
