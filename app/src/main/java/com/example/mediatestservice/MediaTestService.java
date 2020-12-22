@@ -127,10 +127,10 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
 
 //        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
 //        layoutParams.height = LinearLayout.LayoutParams.MATCH_PARENT;
-//        layoutParams.width = 640;
-//        layoutParams.height = 480;
-        layoutParams.width = screenWidth;
-        layoutParams.height = screenHeight;
+        layoutParams.width = 640;
+        layoutParams.height = 480;
+//        layoutParams.width = screenWidth;
+//        layoutParams.height = screenHeight;
         MyLog.d(TAG, "initWM w = " + layoutParams.width + ", h = " + layoutParams.height);
 
         MyLog.d(TAG, "initWM screenWidth = " + screenWidth + ", screenHeight = " + screenHeight);
@@ -291,15 +291,15 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
             // set audio encoder
             mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             // set video encoder
-            mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
+            mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
 //            mMediaRecorder.setOrientationHint(270);
             // set video frameRate
             mMediaRecorder.setVideoFrameRate(30);
 //            mMediaRecorder.setVideoEncodingBitRate(3*1024*1014);
 //            mMediaRecorder.setMaxDuration(30 * 1000);
             // set video size
-               // mMediaRecorder.setVideoSize(1080, 2259);
-            mMediaRecorder.setVideoSize(640, 480);
+            mMediaRecorder.setVideoSize(1280, 720);
+            // mMediaRecorder.setVideoSize(640, 480);
             // set preview
             mMediaRecorder.setPreviewDisplay(mSurfaceView.getHolder().getSurface());
             // set output file
