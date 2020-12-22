@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
+import android.media.AudioManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Build;
@@ -82,19 +83,7 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
 
         @Override
         public void stopRecord() throws RemoteException {
-            if (!isRecording) {
-                return;
-            }
-            MyLog.d(TAG, "stopRecord: ");
-            try {
-                mMediaRecorder.stop();
-                mMediaRecorder.release();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            mMediaRecorder = null;
-            isRecording = false;
-            MyLog.d(TAG, "stopRecord: end");
+
         }
     };
 
@@ -164,18 +153,11 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
             public void handleMessage(@NonNull Message msg) {
                 switch (msg.what) {
                     case Common.MSG_START_RECORD:
-                        try {
-//                            stub.startRecord();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        Log.d(TAG, "handleMessage: receive start cmd");
                         break;
                     case Common.MSG_STOP_RECORD:
-                        try {
-                            stub.stopRecord();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        Log.d(TAG, "handleMessage: receive stop cmd");
+                        stop();
                         break;
                     default:
                         break;
@@ -252,28 +234,28 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
             MyLog.d(TAG, "onReceive: my " + intent.getAction());
             if (ALARM_ACTION == intent.getAction()) {
 
-                PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
-                AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+//                PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
+//                AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+//
+//                Calendar calendar = Calendar.getInstance();
+//                calendar.set(Calendar.HOUR_OF_DAY, 20);
+//                calendar.set(Calendar.MINUTE, 30);
+//                calendar.set(Calendar.SECOND, 0);
+//                calendar.set(Calendar.MILLISECOND, 0);
+//
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
+//                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+//                    am.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
+//                } else {
+//                    am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+//                }
 
-                Calendar calendar = Calendar.getInstance();
-                calendar.set(Calendar.HOUR_OF_DAY, 20);
-                calendar.set(Calendar.MINUTE, 30);
-                calendar.set(Calendar.SECOND, 0);
-                calendar.set(Calendar.MILLISECOND, 0);
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    am.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
-                } else {
-                    am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
-                }
-
-                try {
-                    stub.startRecord();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    stub.startRecord();
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
 
             }
         }
@@ -287,23 +269,15 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
             Log.e(TAG, "recordFile is null");
             return;
         }
-
+        mute();
         mMediaRecorder = new MediaRecorder();
 
         MyLog.d(TAG, "startRecord: 000");
         mCamera = Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
         if (mCamera != null) {
             mCamera.setDisplayOrientation(90);
+            getSupportedVideoSizes(mCamera);
             mCamera.unlock();
-
-
-//            final List<Camera.Size> mSupportedVideoSizes = getSupportedVideoSizes(mCamera);
-//            for (Camera.Size str : mSupportedVideoSizes) {
-//                Log.d(TAG, "mSupportedVideoSizes "+str.width + ":" + str.height + " ... "
-//                        + ((float) str.width / str.height));
-//            }
-
-
             mMediaRecorder.setCamera(mCamera);
         }
         MyLog.d(TAG, "startRecord: 111");
@@ -317,15 +291,15 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
             // set audio encoder
             mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             // set video encoder
-            mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
+            mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
+//            mMediaRecorder.setOrientationHint(270);
             // set video frameRate
             mMediaRecorder.setVideoFrameRate(30);
 //            mMediaRecorder.setVideoEncodingBitRate(3*1024*1014);
-            mMediaRecorder.setOrientationHint(90);
-            mMediaRecorder.setMaxDuration(30 * 1000);
+//            mMediaRecorder.setMaxDuration(30 * 1000);
             // set video size
                // mMediaRecorder.setVideoSize(1080, 2259);
-//            mMediaRecorder.setVideoSize(640, 480);
+            mMediaRecorder.setVideoSize(640, 480);
             // set preview
             mMediaRecorder.setPreviewDisplay(mSurfaceView.getHolder().getSurface());
             // set output file
@@ -357,13 +331,48 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
 //            mHandler.sendEmptyMessageDelayed(Common.MSG_STOP_RECORD, Common.TIME_3H);
     }
 
-    public List<Camera.Size> getSupportedVideoSizes(Camera camera) {
+    private void stop() {
+        if (!isRecording) {
+            return;
+        }
+        MyLog.d(TAG, "stopRecord: ");
+        try {
+            mMediaRecorder.stop();
+            mMediaRecorder.release();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (mCamera != null) {
+            mCamera.lock();
+        }
+        mMediaRecorder = null;
+        isRecording = false;
+        MyLog.d(TAG, "stopRecord: end");
+    }
+
+    private void getSupportedVideoSizes(Camera camera) {
+        final List<Camera.Size> supportedVideoSizes;
+
         if (camera.getParameters().getSupportedVideoSizes() != null) {
-            return camera.getParameters().getSupportedVideoSizes();
+            supportedVideoSizes = camera.getParameters().getSupportedVideoSizes();
         } else {
             // Video sizes may be null, which indicates that all the supported
-            // preview sizes are supported for video recording.
-            return camera.getParameters().getSupportedPreviewSizes();
+            // preview sizes are supported for video recordingr
+            supportedVideoSizes = camera.getParameters().getSupportedPreviewSizes();
         }
+        for (Camera.Size str : supportedVideoSizes) {
+            Log.d(TAG, "supported video sizes "+str.width + ":" + str.height + " ... " + ((float) str.width / str.height));
+        }
+    }
+
+    private void mute() {
+        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, true);
+        audioManager.setStreamMute(AudioManager.STREAM_MUSIC,true);
+        audioManager.setStreamVolume(AudioManager.STREAM_ALARM, 0, 0);
+        audioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, 0);
+        audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, 0);
+        audioManager.setStreamVolume(AudioManager.STREAM_RING, 0, 0);
     }
 }
