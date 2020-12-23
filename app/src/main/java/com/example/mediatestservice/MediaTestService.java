@@ -3,6 +3,8 @@ package com.example.mediatestservice;
 import android.Manifest;
 import android.app.AlarmManager;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -39,6 +41,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import java.io.File;
@@ -76,6 +79,9 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
     private View mRecordView;
     private SurfaceView mSurfaceView;
 
+    private static final String CHANNEL_ID = "com.example.mediatestservice.channel";
+    private static final int NOTIFICATION_ID = 123;
+
     private final IMediaTestService.Stub stub = new IMediaTestService.Stub() {
         @Override
         public void startRecord() throws RemoteException {
@@ -92,11 +98,15 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
     public void onCreate() {
         super.onCreate();
         MyLog.d(TAG, "service onCreate: ");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel();
+        }
         MyLog.setPath(getExternalFilesDir(null));
         initHandlerThread();
         initAm(this);
         initReceiver();
-        initFloatSurface(this);
+//        initFloatSurface(this);
+        SurfaceMng.getInstance().init(this);
 
         MyLog.d(TAG, "service onCreate: end");
     }
@@ -104,52 +114,6 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
-    }
-
-    private void initFloatSurface(Context context) {
-        MyLog.d(TAG, "initWM");
-
-        mWindowManager = (WindowManager) context.getSystemService(WINDOW_SERVICE);
-        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-        //形成的窗口层级关系，Android 8.0 前后存在区别
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            //实现在其他应用和窗口上方显示提醒窗口
-            layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-        } else {
-            //表示提供用户交互操作的非应用窗口
-            layoutParams.type = WindowManager.LayoutParams.TYPE_PHONE;
-        }
-        // what this ?
-        layoutParams.format = PixelFormat.RGBX_8888;
-        // 显示位置
-        layoutParams.gravity = Gravity.START | Gravity.TOP;
-        // 是否可触摸，聚焦
-        //layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        // 窗口宽高
-        DisplayMetrics dm = getResources().getDisplayMetrics();
-        int screenWidth = dm.widthPixels;
-        int screenHeight = dm.heightPixels;
-
-//        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
-//        layoutParams.height = LinearLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.width = 640;
-        layoutParams.height = 480;
-//        layoutParams.width = screenWidth;
-//        layoutParams.height = screenHeight;
-        MyLog.d(TAG, "initWM w = " + layoutParams.width + ", h = " + layoutParams.height);
-
-        MyLog.d(TAG, "initWM screenWidth = " + screenWidth + ", screenHeight = " + screenHeight);
-
-        mRecordView = LayoutInflater.from(this).inflate(R.layout.float_window, null);
-        mSurfaceView = (SurfaceView) mRecordView.findViewById(R.id.surface);
-        mSurfaceView.getHolder().addCallback(this);
-
-
-
-
-        mWindowManager.addView(mRecordView, layoutParams);
-        MyLog.d(TAG, "initWM end");
     }
 
     private void initHandlerThread() {
@@ -213,9 +177,7 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
     public void onDestroy() {
         super.onDestroy();
         MyLog.d(TAG, "service onDestroy: ");
-        if (mWindowManager != null) {
-            mWindowManager.removeView(mRecordView);
-        }
+        SurfaceMng.getInstance().onDestroy(this);
     }
 
     @Override
@@ -307,7 +269,8 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
             mMediaRecorder.setVideoSize(1280, 720);
             // mMediaRecorder.setVideoSize(640, 480);
             // set preview
-            mMediaRecorder.setPreviewDisplay(mSurfaceView.getHolder().getSurface());
+            // mMediaRecorder.setPreviewDisplay(mSurfaceView.getHolder().getSurface());
+             mMediaRecorder.setPreviewDisplay(SurfaceMng.getInstance().getSurfaceView().getHolder().getSurface());
             // set output file
             mMediaRecorder.setOutputFile(recordFile.getAbsolutePath());
 
@@ -375,9 +338,37 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, true);
 //        audioManager.setStreamMute(AudioManager.STREAM_MUSIC,true);
-        audioManager.setStreamVolume(AudioManager.STREAM_ALARM, 0, 0);
-        audioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, 0);
+//        audioManager.setStreamVolume(AudioManager.STREAM_ALARM, 0, 0);
+//        audioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, 0);
         audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, 0);
-        audioManager.setStreamVolume(AudioManager.STREAM_RING, 0, 0);
+//        audioManager.setStreamVolume(AudioManager.STREAM_RING, 0, 0);
     }
+
+   @RequiresApi(api = Build.VERSION_CODES.O)
+   private void createNotificationChannel() {
+       Log.d(TAG, "createNotificationChannel: ");
+        String channelName = "MediaTest";
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, channelName, importance);
+        channel.setDescription("描述");
+       Log.d(TAG, "createNotificationChannel: 111");
+
+       NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID);
+       builder.setSmallIcon(R.drawable.ic_launcher_background) //设置通知图标
+                .setContentTitle("标题")
+                .setContentText("内容")
+                .setAutoCancel(true) //用户触摸时自动关闭
+                .setOngoing(true); //设置处于运行状态
+
+       Log.d(TAG, "createNotificationChannel: 222");
+       NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+       notificationManager.createNotificationChannel(channel);
+       Log.d(TAG, "createNotificationChannel: 333");
+
+       try {
+           startForeground(NOTIFICATION_ID, builder.build());
+       } catch (Exception e) {
+           e.printStackTrace();
+       }
+   }
 }
