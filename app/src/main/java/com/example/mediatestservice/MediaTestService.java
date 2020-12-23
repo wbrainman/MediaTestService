@@ -2,6 +2,7 @@ package com.example.mediatestservice;
 
 import android.Manifest;
 import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -98,6 +99,11 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
         initFloatSurface(this);
 
         MyLog.d(TAG, "service onCreate: end");
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
     }
 
     private void initFloatSurface(Context context) {
@@ -292,10 +298,10 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
             mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             // set video encoder
             mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-//            mMediaRecorder.setOrientationHint(270);
+            mMediaRecorder.setOrientationHint(270);
             // set video frameRate
             mMediaRecorder.setVideoFrameRate(30);
-//            mMediaRecorder.setVideoEncodingBitRate(3*1024*1014);
+            mMediaRecorder.setVideoEncodingBitRate(3*1024*1014);
 //            mMediaRecorder.setMaxDuration(30 * 1000);
             // set video size
             mMediaRecorder.setVideoSize(1280, 720);
@@ -318,7 +324,6 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
             MyLog.d(TAG, "startRecord: 222");
 
             mMediaRecorder.prepare();
-            MyLog.d(TAG, "startRecord: 333");
             mMediaRecorder.start();
             isRecording = true;
             MyLog.d(TAG, "startRecord: end");
@@ -369,7 +374,7 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
     private void mute() {
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, true);
-        audioManager.setStreamMute(AudioManager.STREAM_MUSIC,true);
+//        audioManager.setStreamMute(AudioManager.STREAM_MUSIC,true);
         audioManager.setStreamVolume(AudioManager.STREAM_ALARM, 0, 0);
         audioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, 0);
         audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, 0);
