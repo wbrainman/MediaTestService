@@ -64,7 +64,6 @@ import static com.example.mediatestservice.common.Common.TIME_10S;
 public class MediaTestService extends Service implements SurfaceHolder.Callback{
 
     private static final String TAG = "MediaTest";
-    private File recordFile;
 
     private HandlerThread mHandlerThread = new HandlerThread("MediaTest");
     private Handler mHandler;
@@ -115,10 +114,10 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
                 switch (msg.what) {
                     case Common.MSG_START_RECORD:
                         Log.d(TAG, "handleMessage: receive start cmd");
+                        start();
                         break;
                     case Common.MSG_STOP_RECORD:
                         Log.d(TAG, "handleMessage: receive stop cmd");
-                        stop();
                         break;
                     default:
                         break;
@@ -168,6 +167,7 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
     public void onDestroy() {
         super.onDestroy();
         MyLog.d(TAG, "service onDestroy: ");
+        MediaMng.getInstance().stop();
         SurfaceMng.getInstance().onDestroy(this);
     }
 
@@ -179,12 +179,27 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
         Log.d(TAG, "surfaceChanged: width = " + width + ", height = " + height);
-        start(width, height);
+        mHandler.sendEmptyMessage(Common.MSG_START_RECORD);
+
     }
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
         Log.d(TAG, "surfaceDestroyed: ");
+    }
+
+    private void start() {
+        MyLog.d(TAG, "startRecord: ");
+        // prepare file & path
+        File recordFile;
+        recordFile = FileUtil.createMediaStoreFile(MyApplication.getContext());
+        if (null == recordFile) {
+            Log.e(TAG, "recordFile is null");
+            return;
+        }
+        mute();
+        MediaMng.getInstance().start(recordFile);
+//            mHandler.sendEmptyMessageDelayed(Common.MSG_STOP_RECORD, Common.TIME_3H);
     }
 
     public class MyReceiver extends BroadcastReceiver {
@@ -220,25 +235,6 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
         }
     }
 
-    private void start(int width, int height) {
-        MyLog.d(TAG, "startRecord: ");
-        // prepare file & path
-        recordFile = FileUtil.createMediaStoreFile(MyApplication.getContext());
-        if (null == recordFile) {
-            Log.e(TAG, "recordFile is null");
-            return;
-        }
-        mute();
-        MediaMng.getInstance().start(recordFile);
-        mHandler.sendEmptyMessageDelayed(Common.MSG_STOP_RECORD, Common.TIME_10S);
-//            mHandler.sendEmptyMessageDelayed(Common.MSG_STOP_RECORD, Common.TIME_3H);
-    }
-
-    private void stop() {
-        MediaMng.getInstance().stop();
-        MyLog.d(TAG, "stopRecord: ");
-    }
-
     private void mute() {
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, true);
@@ -259,8 +255,8 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
        Log.d(TAG, "createNotificationChannel: 111");
 
        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID);
-       builder.setSmallIcon(R.drawable.ic_launcher_background) //设置通知图标
-                .setContentTitle("标题")
+//       builder.setSmallIcon(R.drawable.ic_launcher_background) //设置通知图标
+       builder.setContentTitle("标题")
                 .setContentText("内容")
                 .setAutoCancel(true) //用户触摸时自动关闭
                 .setOngoing(true); //设置处于运行状态

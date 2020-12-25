@@ -67,10 +67,10 @@ public class SurfaceMng {
         int screenWidth = dm.widthPixels;
         int screenHeight = dm.heightPixels;
 
-//        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
-//        layoutParams.height = LinearLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.width = 640;
-        layoutParams.height = 480;
+        layoutParams.width = 1;
+        layoutParams.height = 1;
+//        layoutParams.width = 640;
+//        layoutParams.height = 480;
 //        layoutParams.width = screenWidth;
 //        layoutParams.height = screenHeight;
         MyLog.d(TAG, "initWM w = " + layoutParams.width + ", h = " + layoutParams.height);
