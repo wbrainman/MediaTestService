@@ -51,11 +51,11 @@ public class MediaMng {
             mMediaRecorder.setOrientationHint(270);
             // set video frameRate
             mMediaRecorder.setVideoFrameRate(30);
-            mMediaRecorder.setVideoEncodingBitRate(3*1024*1014);
+            mMediaRecorder.setVideoEncodingBitRate(1024*1024);
 //            mMediaRecorder.setMaxDuration(30 * 1000);
             // set video size
-            mMediaRecorder.setVideoSize(1280, 720);
-            // mMediaRecorder.setVideoSize(640, 480);
+//            mMediaRecorder.setVideoSize(1280, 720);
+             mMediaRecorder.setVideoSize(640, 480);
             // set preview
             mMediaRecorder.setPreviewDisplay(SurfaceMng.getInstance().getSurfaceView().getHolder().getSurface());
             // set output file
