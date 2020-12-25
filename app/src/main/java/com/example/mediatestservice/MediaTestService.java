@@ -64,20 +64,12 @@ import static com.example.mediatestservice.common.Common.TIME_10S;
 public class MediaTestService extends Service implements SurfaceHolder.Callback{
 
     private static final String TAG = "MediaTest";
-    private MediaRecorder mMediaRecorder;
-    private Camera mCamera;
-    boolean isRecording = false;
-    private File recordPath;
     private File recordFile;
 
     private HandlerThread mHandlerThread = new HandlerThread("MediaTest");
     private Handler mHandler;
 
     private MyReceiver myReceiver;
-
-    private WindowManager mWindowManager;
-    private View mRecordView;
-    private SurfaceView mSurfaceView;
 
     private static final String CHANNEL_ID = "com.example.mediatestservice.channel";
     private static final int NOTIFICATION_ID = 123;
@@ -105,7 +97,6 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
         initHandlerThread();
         initAm(this);
         initReceiver();
-//        initFloatSurface(this);
         SurfaceMng.getInstance().init(this);
 
         MyLog.d(TAG, "service onCreate: end");
@@ -238,100 +229,14 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
             return;
         }
         mute();
-        mMediaRecorder = new MediaRecorder();
-
-        MyLog.d(TAG, "startRecord: 000");
-        mCamera = Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
-        if (mCamera != null) {
-            mCamera.setDisplayOrientation(90);
-            getSupportedVideoSizes(mCamera);
-            mCamera.unlock();
-            mMediaRecorder.setCamera(mCamera);
-        }
-        MyLog.d(TAG, "startRecord: 111");
-
-        try {
-            // set video & audio resource
-            mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-            // set output format
-            mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-            // set audio encoder
-            mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-            // set video encoder
-            mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-            mMediaRecorder.setOrientationHint(270);
-            // set video frameRate
-            mMediaRecorder.setVideoFrameRate(30);
-            mMediaRecorder.setVideoEncodingBitRate(3*1024*1014);
-//            mMediaRecorder.setMaxDuration(30 * 1000);
-            // set video size
-            mMediaRecorder.setVideoSize(1280, 720);
-            // mMediaRecorder.setVideoSize(640, 480);
-            // set preview
-            // mMediaRecorder.setPreviewDisplay(mSurfaceView.getHolder().getSurface());
-             mMediaRecorder.setPreviewDisplay(SurfaceMng.getInstance().getSurfaceView().getHolder().getSurface());
-            // set output file
-            mMediaRecorder.setOutputFile(recordFile.getAbsolutePath());
-
-            mMediaRecorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
-                @Override
-                public void onError(MediaRecorder mr, int what, int extra) {
-                    mMediaRecorder.stop();
-                    mMediaRecorder.release();
-                    mMediaRecorder = null;
-                    isRecording = false;
-                    MyLog.d(TAG, "error what = " + what + " extra = " + extra);
-                }
-            });
-            MyLog.d(TAG, "startRecord: 222");
-
-            mMediaRecorder.prepare();
-            mMediaRecorder.start();
-            isRecording = true;
-            MyLog.d(TAG, "startRecord: end");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        MediaMng.getInstance().start(recordFile);
         mHandler.sendEmptyMessageDelayed(Common.MSG_STOP_RECORD, Common.TIME_10S);
 //            mHandler.sendEmptyMessageDelayed(Common.MSG_STOP_RECORD, Common.TIME_3H);
     }
 
     private void stop() {
-        if (!isRecording) {
-            return;
-        }
+        MediaMng.getInstance().stop();
         MyLog.d(TAG, "stopRecord: ");
-        try {
-            mMediaRecorder.stop();
-            mMediaRecorder.release();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (mCamera != null) {
-            mCamera.lock();
-        }
-        mMediaRecorder = null;
-        isRecording = false;
-        MyLog.d(TAG, "stopRecord: end");
-    }
-
-    private void getSupportedVideoSizes(Camera camera) {
-        final List<Camera.Size> supportedVideoSizes;
-
-        if (camera.getParameters().getSupportedVideoSizes() != null) {
-            supportedVideoSizes = camera.getParameters().getSupportedVideoSizes();
-        } else {
-            // Video sizes may be null, which indicates that all the supported
-            // preview sizes are supported for video recordingr
-            supportedVideoSizes = camera.getParameters().getSupportedPreviewSizes();
-        }
-        for (Camera.Size str : supportedVideoSizes) {
-            Log.d(TAG, "supported video sizes "+str.width + ":" + str.height + " ... " + ((float) str.width / str.height));
-        }
     }
 
     private void mute() {
