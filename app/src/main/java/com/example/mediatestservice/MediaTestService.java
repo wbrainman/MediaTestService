@@ -132,7 +132,7 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
         PendingIntent pi = PendingIntent.getBroadcast(this, 0, intent, 0);
         AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 20);
+        calendar.set(Calendar.HOUR_OF_DAY, 17);
         calendar.set(Calendar.MINUTE, 30);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
@@ -143,8 +143,6 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
         } else {
             am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
         }
-//        am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 5000, pi);
-//        am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), TIME_10MIN, pi);
     }
 
     private void initReceiver() {
@@ -179,7 +177,7 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
         Log.d(TAG, "surfaceChanged: width = " + width + ", height = " + height);
-        mHandler.sendEmptyMessage(Common.MSG_START_RECORD);
+//        mHandler.sendEmptyMessage(Common.MSG_START_RECORD);
 
     }
 
@@ -208,6 +206,9 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
             MyLog.d(TAG, "onReceive: my " + intent.getAction());
             if (ALARM_ACTION == intent.getAction()) {
 
+                MyLog.d(TAG, "send msg: start record");
+                mHandler.sendEmptyMessage(Common.MSG_START_RECORD);
+
 //                PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
 //                AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
 //
@@ -223,12 +224,6 @@ public class MediaTestService extends Service implements SurfaceHolder.Callback{
 //                    am.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
 //                } else {
 //                    am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
-//                }
-
-//                try {
-//                    stub.startRecord();
-//                } catch (Exception e) {
-//                    e.printStackTrace();
 //                }
 
             }
